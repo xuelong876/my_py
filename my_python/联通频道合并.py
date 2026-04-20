@@ -2,7 +2,13 @@ import os  # 操作系统接口模块，用于文件路径操作
 import re  # 正则表达式模块，用于字符串匹配和处理
 import glob  # 文件通配符模块，用于查找匹配的文件
 from typing import List, Tuple, Optional, Dict, Any  # 类型注解模块，用于指定函数参数和返回值的类型
+"""
+河南联通频道整理
 
+功能：
+1：将不同格式的频道名称合并为标准化格式（归一化频道名）
+2:根据联通酒店源频道.txt ，中的频道排序，重排频道，只保留需要的频道。
+"""
 
 def normalize_channel_name(channel_name: str) -> Optional[str]:
     """
@@ -209,7 +215,7 @@ def main():
     # 配置项 - 定义文件路径和目录
     CONFIG = {
         'target_dir': r"C:\C盘下载\河南联通直播源",  # 源文件目录
-        'favorite_file': r"C:\Users\xuelong88\Desktop\tvbox备份\收藏频道.txt", 
+        'favorite_file': r"C:\VS_files\py_file\my_py\my_python\联通频道合并.py", 
         # 'favorite_file': r"C:\Users\xuelong88\Desktop\tvbox备份\增加频道.txt",  # 给移动8M增加的频道
 
         'output_txt': r"C:\Users\xuelong88\Desktop\tvbox备份\联通酒店合并.txt",  # 输出TXT文件
