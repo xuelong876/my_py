@@ -2,7 +2,9 @@ import requests
 import os
 import json
 """
-本脚本用于下载并处理Tvbox_json站点的JSON文件，
+JSON站点配置处理脚本1：
+
+功能：
 1:先下载API接口JSON文件到指定本地文件夹，
 2：从json文件中提取站点名（sites[name]）并保存在改目录下(txt文件同名），
 3：从txt文件中筛选站点，删除多余站点，另外保存到sites_filter.txt文件
