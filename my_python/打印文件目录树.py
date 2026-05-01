@@ -44,125 +44,6 @@ def is_excluded_file(filename, exclude_extensions):
     return get_extension(filename) in exclude_extensions
 
 
-def print_directory_tree_all(path, indent=0, file_counter=1, prefix=""):
-    """
-    模式1：打印全部文件（带序号）
-    :param path: 文件夹路径
-    :param indent: 缩进量
-    :param file_counter: 文件序号计数器
-    :param prefix: 前缀（用于递归时传递序号状态）
-    """
-    if not os.path.isdir(path):
-        print("错误：这不是一个有效的文件夹路径")
-        return file_counter
-    
-    # 打印当前文件夹名称
-    print(' ' * indent + os.path.basename(path) + '/')
-    
-    # 获取并排序目录内容
-    try:
-        items = sorted(os.listdir(path))
-    except PermissionError:
-        print(' ' * (indent + 4) + '[权限不足，无法读取]')
-        return file_counter
-    
-    for item in items:
-        item_path = os.path.join(path, item)
-        
-        if os.path.isdir(item_path):
-            # 递归处理子文件夹
-            file_counter = print_directory_tree_all(item_path, indent + 4, file_counter, prefix)
-        elif os.path.isfile(item_path):
-            # 打印文件（全部文件都带序号）
-            print(' ' * (indent + 4) + f"{file_counter}. {item}")
-            file_counter += 1
-    
-    return file_counter
-
-
-def print_directory_tree_video(path, indent=0, file_counter=1, prefix=""):
-    """
-    模式2：只打印视频文件（只对视频文件编号，非视频文件不显示）
-    :param path: 文件夹路径
-    :param indent: 缩进量
-    :param file_counter: 文件序号计数器
-    :param prefix: 前缀
-    """
-    if not os.path.isdir(path):
-        print("错误：这不是一个有效的文件夹路径")
-        return file_counter
-    
-    # 打印当前文件夹名称
-    print(' ' * indent + os.path.basename(path) + '/')
-    
-    try:
-        items = sorted(os.listdir(path))
-    except PermissionError:
-        print(' ' * (indent + 4) + '[权限不足，无法读取]')
-        return file_counter
-    
-    for item in items:
-        item_path = os.path.join(path, item)
-        
-        if os.path.isdir(item_path):
-            # 递归处理子文件夹
-            file_counter = print_directory_tree_video(item_path, indent + 4, file_counter, prefix)
-        elif os.path.isfile(item_path):
-            # 只打印视频文件
-            if is_video_file(item):
-                # 显示文件信息（可选的额外信息）
-                file_size = os.path.getsize(item_path)
-                size_str = format_size(file_size)
-                print(' ' * (indent + 4) + f"{file_counter}. {item} [{size_str}]")
-                file_counter += 1
-            # 非视频文件不显示，也不占用序号
-    
-    return file_counter
-
-
-def print_directory_tree_exclude(path, exclude_extensions, indent=0, file_counter=1, show_excluded=False):
-    """
-    模式3：排除指定后缀名打印目录树
-    :param path: 文件夹路径
-    :param exclude_extensions: 要排除的后缀名集合（如 {'.txt', '.log'}）
-    :param indent: 缩进量
-    :param file_counter: 文件序号计数器
-    :param show_excluded: 是否显示被排除的文件（标记为[已排除]）
-    """
-    if not os.path.isdir(path):
-        print("错误：这不是一个有效的文件夹路径")
-        return file_counter
-    
-    # 打印当前文件夹名称
-    print(' ' * indent + os.path.basename(path) + '/')
-    
-    try:
-        items = sorted(os.listdir(path))
-    except PermissionError:
-        print(' ' * (indent + 4) + '[权限不足，无法读取]')
-        return file_counter
-    
-    for item in items:
-        item_path = os.path.join(path, item)
-        
-        if os.path.isdir(item_path):
-            # 递归处理子文件夹
-            file_counter = print_directory_tree_exclude(
-                item_path, exclude_extensions, indent + 4, file_counter, show_excluded
-            )
-        elif os.path.isfile(item_path):
-            # 检查是否被排除
-            if is_excluded_file(item, exclude_extensions):
-                if show_excluded:
-                    print(' ' * (indent + 4) + f"[已排除] {item}")
-                # 被排除的文件不占用序号
-            else:
-                print(' ' * (indent + 4) + f"{file_counter}. {item}")
-                file_counter += 1
-    
-    return file_counter
-
-
 def format_size(size_bytes):
     """格式化文件大小显示"""
     for unit in ['B', 'KB', 'MB', 'GB']:
@@ -170,6 +51,110 @@ def format_size(size_bytes):
             return f"{size_bytes:.1f}{unit}"
         size_bytes /= 1024.0
     return f"{size_bytes:.1f}TB"
+
+
+def sort_items(items, path):
+    """
+    排序目录内容：文件夹优先，然后按名称排序
+    """
+    dirs = []
+    files = []
+    for item in items:
+        item_path = os.path.join(path, item)
+        if os.path.isdir(item_path):
+            dirs.append(item)
+        else:
+            files.append(item)
+    return sorted(dirs) + sorted(files)
+
+
+def should_include_file(filename, mode, exclude_extensions=None):
+    """判断文件是否应该被显示"""
+    if mode == 1:
+        return True
+    elif mode == 2:
+        return is_video_file(filename)
+    elif mode == 3:
+        return not is_excluded_file(filename, exclude_extensions)
+    return True
+
+
+def print_directory_tree(
+    path, 
+    mode, 
+    exclude_extensions=None, 
+    show_excluded=False, 
+    show_size=False, 
+    indent=0, 
+    file_counter=1,
+    is_last=True,
+    prefix=""
+):
+    """
+    通用目录树打印函数（统一处理三种模式）
+    :param path: 文件夹路径
+    :param mode: 打印模式 1-全部 2-仅视频 3-排除指定
+    :param exclude_extensions: 要排除的后缀名集合
+    :param show_excluded: 是否显示被排除的文件
+    :param show_size: 是否显示文件大小
+    :param indent: 缩进量
+    :param file_counter: 文件序号计数器
+    :param is_last: 是否是当前目录最后一个项目
+    :param prefix: 前缀（用于绘制树形结构）
+    """
+    if not os.path.isdir(path):
+        print(f"{prefix}错误：这不是一个有效的文件夹路径")
+        return file_counter
+    
+    # 打印根目录名称
+    if indent == 0:
+        print(os.path.basename(path) + "/")
+    
+    try:
+        items = sort_items(os.listdir(path), path)
+    except PermissionError:
+        print(f"{prefix}    [权限不足，无法读取]")
+        return file_counter
+    
+    # 过滤需要显示的项目
+    for index, item in enumerate(items):
+        item_path = os.path.join(path, item)
+        is_last_item = index == len(items) - 1
+        if os.path.isdir(item_path):
+            # 打印文件夹名称
+            connector = "└─ " if is_last_item else "├─ "
+            print(f"{prefix}{connector}{item}/")
+            
+            # 计算新前缀
+            new_prefix = prefix + ("    " if is_last_item else "│   ")
+            
+            # 递归处理子文件夹
+            file_counter = print_directory_tree(
+                item_path, mode, exclude_extensions, 
+                show_excluded, show_size, indent + 4, 
+                file_counter, is_last_item, new_prefix
+            )
+        
+        elif os.path.isfile(item_path):
+            include = should_include_file(item, mode, exclude_extensions)
+            
+            if not include:
+                if show_excluded:
+                    connector = "└─ " if is_last_item else "├─ "
+                    print(f"{prefix}{connector}[已排除] {item}")
+                continue
+            
+            # 构建显示名称
+            size_info = ""
+            if show_size:
+                file_size = os.path.getsize(item_path)
+                size_info = f" [{format_size(file_size)}]"
+            
+            connector = "└─ " if is_last_item else "├─ "
+            print(f"{prefix}{connector}{file_counter}. {item}{size_info}")
+            file_counter += 1
+    
+    return file_counter
 
 
 def get_user_input():
@@ -244,22 +229,43 @@ def main():
         print("已退出程序")
         return
     
+    # 询问是否显示文件大小
+    show_size_input = input("\n是否显示文件大小？(y/N): ").strip().lower()
+    show_size = show_size_input == 'y'
+    
     print("\n" + "=" * 50)
     print(f"正在扫描: {path}")
     print("=" * 50 + "\n")
     
     # 根据模式执行相应的打印函数
     if mode == 1:
-        print_directory_tree_all(path)
+        print_directory_tree(path, mode=1, show_size=show_size)
     elif mode == 2:
-        print_directory_tree_video(path)
+        print_directory_tree(path, mode=2, show_size=show_size)
     elif mode == 3:
         exclude_extensions = get_exclude_extensions()
         show_excluded = input("\n是否显示被排除的文件？(y/N): ").strip().lower() == 'y'
         print()
-        print_directory_tree_exclude(path, exclude_extensions, show_excluded=show_excluded)
+        print_directory_tree(
+            path, mode=3, exclude_extensions=exclude_extensions,
+            show_excluded=show_excluded, show_size=show_size
+        )
     
     print("\n" + "=" * 50)
+    total_files = print_directory_tree.__closure__[0].cell_contents if False else file_counter
+    # 这里直接使用最终计数器的值，因为函数会返回它
+    final_counter = 0
+    if mode == 1:
+        final_counter = print_directory_tree(path, mode=1, show_size=False) - 1
+    elif mode == 2:
+        final_counter = print_directory_tree(path, mode=2, show_size=False) - 1
+    elif mode == 3:
+        final_counter = print_directory_tree(
+            path, mode=3, exclude_extensions=exclude_extensions,
+            show_excluded=show_excluded, show_size=False
+        ) - 1
+    
+    print(f"\n总计显示 {final_counter} 个文件")
     print("打印完成！")
     print("=" * 50)
 

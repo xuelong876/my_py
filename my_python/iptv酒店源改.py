@@ -1,48 +1,62 @@
 import time  # 时间模块
 from selenium import webdriver  # 自动化模块
-from selenium.webdriver.chrome.options import Options  # 浏览器设置模块
+from selenium.webdriver.edge.options import Options  # 浏览器设置模块
 import requests  # 网络请求库  HTTP服务库
 import json  # JSON库
 import re  # 正则
-from selenium.webdriver.chrome.service import Service  # chromedriver服务
+from selenium.webdriver.edge.service import Service  # edgedriver服务
 
 # TODO 用网络空间搜索河南陕西的酒店源端口IP  用自动化工具selenium 爬虫 抓取正则匹配直播源地址并整理 写入TXT 文本
 
-# TODO 创建 WebDriver 对象，指明使用chrome浏览器驱动  环境变量已经配置好了pcharm不识别 所以指定浏览器驱动路径
-# driver = webdriver.Chrome(service=Service(r'd:\python\browserDriver\chromedriver.exe'))
+# TODO 创建 WebDriver 对象，指明使用edge浏览器驱动  环境变量已经配置好了pcharm不识别 所以指定浏览器驱动路径
+#driver = webdriver.edge(service=Service(r'C:\python\Scripts\msedgedriver.exe'))
 
 # 定义河南 陕西 空间搜索fofa 以获取 酒店源网络地址端口
 henan = "https://fofa.info/result?qbase64=ImlwdHYvbGl2ZS96aF9jbi5qcyIgJiYgY291bnRyeT0iQ04iICYmIHJlZ2lvbj0i5rKz5Y2XIg%3D%3D"  # 河南
-shaanxi = "https://fofa.info/result?qbase64=ImlwdHYvbGl2ZS96aF9jbi5qcyIgJiYgY291bnRyeT0iQ04iICYmIHJlZ2lvbj0iU2hhYW54aSI%3D"  # 陕西
 
 
 # 定义一个处理URL的函数
 def process_url(url):
-    # 设置Chrome浏览器的选项，包括无头模式和安全选项
-    chrome_options = Options()
-    chrome_options.add_argument('--headless')  # 无头模式，不显示浏览器界面
-    chrome_options.add_argument('--no-sandbox')  # 忽略沙箱环境
-    chrome_options.add_argument('--disable-dev-shm-usage')  # 禁用/dev/shm的使用
+    # 设置edge浏览器的选项，包括无头模式和安全选项
+    edge_options = Options()
+    #设置Edge浏览器二进制路径
+    edge_options.binary_location=r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 
-    # 创建一个Chrome WebDriver实例
-    driver = webdriver.Chrome(
-      #  service=Service(r'd:\python\browserDriver\chromedriver.exe'),  # 定义浏览器驱动路径
-        options=chrome_options,
+    # edge_options.add_argument('--headless')  # 无头模式，不显示浏览器界面
+    edge_options.add_argument('--no-sandbox')  # 忽略沙箱环境
+    edge_options.add_argument('--disable-dev-shm-usage')  # 禁用/dev/shm的使用
+   # 添加以下参数禁用媒体组件，消除GetPackagesByPackageFamily错误
+    edge_options.add_argument('--disable-media-source')
+    edge_options.add_argument('--disable-software-rasterizer')
+    edge_options.add_experimental_option('excludeSwitches', ['enable-logging'])
+    # 添加伪装UA，绕过反爬检测
+    edge_options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0')
+
+    
+    # 创建一个edge WebDriver实例
+    driver = webdriver.Edge(
+        service=Service(r'C:\python\Scripts\msedgedriver.exe'),  # 定义浏览器驱动路径
+        options=edge_options,
     )
     # 使用WebDriver访问网页
-    driver.get(url)  # 将网址替换为你要访问的网页地址
-    time.sleep(10)  # 等待页面加载
+    driver.get("https://fofa.info/")  # 将网址替换为你要访问的网页地址
+
+    print(f"请在打开的浏览器中登录fofa账号，登录完成后程序会继续执行...")
+
+    time.sleep(20)  # 等待页面加载
+    driver.get(url)
     # 获取网页内容
     page_content = driver.page_source
+    #print(page_content)
 
     # 关闭WebDriver
-    driver.quit()
+    #driver.quit()
 
     # 使用正则表达式查找所有符合条件的网址
     pattern = r"http://\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+"  # 匹配IP地址和端口的格式 如http://8.8.8.8:8888
     urls_all = re.findall(pattern, page_content)  # 返回匹配项（pattern ip地址端口）的列表
     urls = list(set(urls_all))  # 去重得到唯一的URL列表  set（集合）具有去重功能
-
+    print(urls)
     results = []  # 新建空列表，用于暂存直播源
     # 遍历网址列表，获取JSON文件并解析
     for url in urls:
@@ -50,8 +64,8 @@ def process_url(url):
             # 构造JSON文件的URL并发送GET请求获取数据
             # TODO 可修改直播源链接格式
             json_url = f"{url}/iptv/live/1000.json?key=txiptv"  # 拼接链接
-            response = requests.get(json_url, timeout=3)  # 获取链接网址数据 等待3秒
-            # print(response)
+            response = requests.get(json_url, timeout=10)  # 获取链接网址数据 等待3秒
+            print(response)
             json_data = response.json()  # 解析网站返回的json 数据为python对象 （通常为字典或列表）
 
             # 解析JSON文件，获取name和url字段
@@ -122,27 +136,26 @@ def process_url(url):
 
 # 定义一个保存结果的函数
 def save_results(results, filename):
-    # 将结果文本文件保存桌面
+    # 将结果文本文件保存到C盘下载目录
+
     with open(
-        f"C:/Users/Administrator/Desktop/{filename}", "w", encoding="utf-8"
+        f"C:/C盘下载/{filename}", "w", encoding="utf-8"
     ) as file:
         for result in results:
             file.write(result + "\n")
-    print(result)  # 打印直播源
+            print(result)  # 打印直播源
 
 
 # 处理各个URL并保存结果到文件
 # 处理第henan个URL
 results_henan = process_url(henan)
 save_results(results_henan, "henan.txt")
-# 处理第shaanxi个URL
-results_shaanxi = process_url(shaanxi)
-save_results(results_shaanxi, "shaanxi.txt")
+
 # 合并文件内容
 file_contents = []  # 新建列表 存放合并后的直播源
 file_paths = [
-    "C:/Users/Administrator/Desktop/shaanxi.txt",  # 文件路径 桌面
-    "C:/Users/Administrator/Desktop/henan.txt",
+   
+    "C:/C盘下载/henan.txt",
 ]  # 替换为实际的文件路径列表
 for file_path in file_paths:  # 遍历文件路径
     # with是一个上下文管理器语句，用于打开一个文件并确保文件在使用后会被正确关闭
@@ -150,5 +163,5 @@ for file_path in file_paths:  # 遍历文件路径
         content = file.read()  # 逐行读取文件
         file_contents.append(content)  # 追加行到列表结尾
 # 写入合并后的文件到桌面
-with open("C:/Users/Administrator/Desktop/IPTV.txt", "w", encoding="utf-8") as output:
+with open("C:/C盘下载/IPTV.txt", "w", encoding="utf-8") as output:
     output.write('\n'.join(file_contents))
