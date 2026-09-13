@@ -167,7 +167,8 @@ def generate_filtered_json():
             #修改壁纸和logo，jar地址
             data["wallpaper"]="http://饭太硬.top/深色壁纸/api.php"
             data["logo"]= "https://raw.giteeusercontent.com/xuelong88/xiaosa_box/raw/master/pg.gif"
-            data["spider"]="https://gitee.com/xuelong88/xiaosa_box/raw/master/spider.jar"
+            #修改spider 为网络 my_tvbox_2.py中修改的spider地址
+            #data["spider"]="https://gitee.com/xuelong88/xiaosa_box/raw/master/spider.jar"
             # 写入新JSON
             with open(out_json_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
