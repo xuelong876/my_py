@@ -55,9 +55,9 @@ def process_xiaosa_site(site: dict) -> dict:
 
     # --- 名称美化（添加Emoji）---
     original_name = site.get("name", "")
-    if original_name == "豆瓣｜首页":
+    if original_name.startswith("豆瓣"):
         site["name"] = "🏠豆瓣🚥潇洒👨"
-    elif original_name == "配置｜中心":
+    elif original_name.startswith("配置"):
         site["name"] = "⚙️配置中心🍅"
     elif original_name.startswith("哔哩"):
         site["name"] = f"🅱️{original_name}🍅"
@@ -153,7 +153,7 @@ def process_all_files():
             }
             processed_sites.append(custom_site)
             #修改spider 为网络
-            data["spider"]="https://qist.ugigc.dpdns.org/xiaosa/spider.jar"
+            data["spider"]="https://github.com/qist/tvbox/tree/master/xiaosa"
         #为PG源更改网络爬虫包
         if input_filename == "jsm.json":
             data["spider"]="https://www.252035.xyz/p/pg.jar"
