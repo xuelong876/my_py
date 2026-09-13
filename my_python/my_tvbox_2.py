@@ -56,7 +56,7 @@ def process_xiaosa_site(site: dict) -> dict:
     # --- 名称美化（添加Emoji）---
     original_name = site.get("name", "")
     if original_name.startswith("豆瓣"):
-        site["name"] = "🏠豆瓣🚥潇洒👨"
+        site["name"] = "🏠豆瓣🚥github潇洒👨"
     elif original_name.startswith("配置"):
         site["name"] = "⚙️配置中心🍅"
     elif original_name.startswith("哔哩"):
