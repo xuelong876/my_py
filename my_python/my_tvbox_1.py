@@ -146,7 +146,7 @@ def generate_filtered_json():
 
             # 读取原始JSON
             with open(json_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
+                data = json.load(f) 
 
             # 过滤站点
             original_count = 0
@@ -164,9 +164,10 @@ def generate_filtered_json():
                 with open(r"C:\C盘下载\Tvbox_json\sites_filter\lives.json", "r", encoding="utf-8") as f:
                     lives_data = json.load(f)
                     data["lives"] = lives_data["lives"]
-            #修改壁纸和logo地址
+            #修改壁纸和logo，jar地址
             data["wallpaper"]="http://饭太硬.top/深色壁纸/api.php"
-            data["logo"]= "https://cdn.jsdelivr.net/gh/xuelong876/mybox_PG@main/pg.gif"
+            data["logo"]= "https://raw.giteeusercontent.com/xuelong88/xiaosa_box/raw/master/pg.gif"
+            data["spider"]="https://gitee.com/xuelong88/xiaosa_box/raw/master/spider.jar"
             # 写入新JSON
             with open(out_json_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
