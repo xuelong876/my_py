@@ -15,6 +15,50 @@ CONFIG = {
         "看球", "DJ", "体育", "听书", "FM", "儿童", "童趣", "课堂", 
         "教育", "急救", "养生", "知识"
     ],
+    "add_site":[
+         {
+            "key": "腾讯视频",
+            "name": "🎬腾讯｜视频🍅",
+            "type": 3,
+            "api": "https://raw.giteeusercontent.com/xuelong88/xiaosa_box/raw/master/xiaosa/drpy2.min.js",
+            "ext": "https://raw.giteeusercontent.com/xuelong88/xiaosa_box/raw/master/xiaosa/腾讯视频.js",
+            "changeable": 0
+        },
+        {
+            "key": "优酷视频",
+            "name": "🎬优酷｜视频🍅",
+            "type": 3,
+            "api": "https://raw.giteeusercontent.com/xuelong88/xiaosa_box/raw/master//xiaosa/drpy2.min.js",
+            "ext": "https://raw.giteeusercontent.com/xuelong88/xiaosa_box/raw/master/xiaosa/优酷视频.js",
+            "changeable": 0
+        },
+        {
+            "key": "芒果视频",
+            "name": "🎬芒果｜视频🍅",
+            "type": 3,
+            "api": "https://raw.giteeusercontent.com/xuelong88/xiaosa_box/raw/master/xiaosa/drpy2.min.js",
+            "ext": "https://raw.giteeusercontent.com/xuelong88/xiaosa_box/raw/master/xiaosa/芒果视频.js",
+            "changeable": 0
+        },
+        {
+            "key": "爱奇艺",
+            "name": "🎬爱奇艺｜视频🍅",
+            "type": 3,
+            "api": "https://raw.giteeusercontent.com/xuelong88/xiaosa_box/raw/master/xiaosa/drpy2.min.js",
+            "ext": "https://raw.giteeusercontent.com/xuelong88/xiaosa_box/raw/master/xiaosa/爱奇艺.js",
+            "changeable": 0
+        },
+            {
+            "key": "猎手影视",
+            "name": "🏂猎手｜py🍅 ",
+            "type": 3,
+            "api": "./py/猎手影视.py",
+            "searchable": 1,
+            "changeable": 0,
+            "quickSearch": 1,
+            "filterable": 1
+        }
+    ],
     "lives": [
         {
             "name": "移动8m",
@@ -35,6 +79,7 @@ CONFIG = {
             "epg": "http://cdn.1678520.xyz/epg/?ch={name}&date={date}"
         }
     ]
+
 }
 
 # --- 名称美化（添加Emoji）---
@@ -118,6 +163,10 @@ def main():
                 site["name"] = add_emoji_to_name(site["name"])
                 # 关闭自动换源
                 site["changeable"] = 0
+        #添加站点
+        data["sites"].append(CONFIG["add_site"])
+
+
         
         # 确保输出目录存在
         output_dir = os.path.dirname(CONFIG["output_path"])
