@@ -9,7 +9,7 @@ CONFIG = {
     "wallpaper": "http://饭太硬.top/深色壁纸/api.php",
     "logo": "https://raw.giteeusercontent.com/xuelong88/xiaosa_box/raw/master/pg.gif",
     "spider": "https://gitee.com/xuelong88/xiaosa_box/raw/master/spider.jar",
-    "output_path": r"C:\C盘下载\Tvbox_json\xiao.json",
+    "output_path": r"C:\C盘下载\Tvbox_json\xiaosa.json",
     "exclude_names": [
         "短剧", "123", "戏曲", "本地", "抖音", "推送", "预告", "动漫", 
         "看球", "DJ", "体育", "听书", "FM", "儿童", "童趣", "课堂", 
@@ -164,7 +164,7 @@ def main():
                 # 关闭自动换源
                 site["changeable"] = 0
         #添加站点
-        data["sites"].append(CONFIG["add_site"])
+        data["sites"].extend(CONFIG["add_site"])
 
 
         
