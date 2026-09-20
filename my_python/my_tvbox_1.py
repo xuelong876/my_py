@@ -1,6 +1,8 @@
 import requests
 import os
 import json
+import re
+
 """
 JSON站点配置处理脚本1：
 
@@ -29,7 +31,20 @@ FILTER_DIR_NAME = "sites_filter"
 FILTER_PATH = os.path.join(BASE_SAVE_PATH, FILTER_DIR_NAME)
 os.makedirs(BASE_SAVE_PATH, exist_ok=True)
 os.makedirs(FILTER_PATH, exist_ok=True)
+def remove_json_comments(json_str):
+    """移除JSON中的单行和多行注释"""
+    pattern = r'//.*?$|/\*.*?\*/|\'(?:\\.|[^\\\'])*\'|"(?:\\.|[^\\"])*"'
+    replacer = lambda match: match.group(0) if match.group(0)[0] == '"' or match.group(0)[0] == "'" else ''
+    return re.sub(pattern, replacer, json_str, flags=re.MULTILINE | re.DOTALL)
 
+def load_json_with_comments(file_path):
+    """加载带注释的JSON文件"""
+    with open(file_path, "r", encoding="utf-8") as f:
+        json_str = f.read()
+    # 移除注释
+    json_str_clean = remove_json_comments(json_str)
+    return json.loads(json_str_clean)
+# ... existing code ...
 def download_json_files():
 
     """下载所有远程JSON文件到本地"""
@@ -89,10 +104,9 @@ def extract_names_to_txt():
             file_path = os.path.join(BASE_SAVE_PATH, file_name)
             txt_file = file_name.replace(".json", ".txt")
             txt_path = os.path.join(BASE_SAVE_PATH, txt_file)
+            data=load_json_with_comments(file_path)#加载json文件，移除注释
 
-            with open(file_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-
+          
             names = []
             if "sites" in data and isinstance(data["sites"], list):
                 for item in data["sites"]:
